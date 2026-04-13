@@ -47,6 +47,8 @@ npm run dev
   <img src="./after_2.png" width="400" />
   <img src="./after_3.png" width="400" />
   <img src="./after_4.png" width="400" />
+  <img src="./after_5.png" width="400" />
+  <img src="./after_6.png" width="400" />
 </p>
 
 ---
@@ -54,26 +56,26 @@ npm run dev
 ## How I Approached the Redesign
 
 ### 1. What design principles guided your improvements?
-When I started picking the colors and fonts, I really focused on keeping it official but making it look a lot more modern. Since it's an IIT Bombay/FOSSEE project, I stuck to a deep navy blue background to give it that institutional feel, but I swapped out the basic fonts for `Outfit` and `Inter` to make the text pop. 
+When I first approached the redesign, I wanted it to feel like a modern, clean dashboard while strictly respecting the official IIT Bombay and FOSSEE branding. Instead of going with a heavily stylized dark mode with glassmorphism, I decided a crisp, light theme with plenty of white space makes an educational tool feel much more approachable. 
 
-I also wanted to make sure users know exactly where to click. I kept the bright gold/amber colors strictly for the "Book Workshop" buttons so they stand out immediately. Plus, to fix the issue of the site feeling a bit flat, I added some subtle glassmorphism effects and small animations so the cards actually lift up when you mouse over them. 
+I used a deep, professional navy blue for the typography and primary navigation, and reserved the energetic orange/amber color specifically for action items—like the "Register" and "Book Workshop" buttons. That way, a user's eyes are immediately drawn to the most important actions. I also ditched flat, boring boxes and added really subtle shadow hover effects so the statistical cards feel interactive.
 
 ### 2. How did you ensure responsiveness across devices?
-I used **Tailwind CSS** for basically all the styling, so fixing the mobile view was pretty straightforward. Instead of dealing with messy CSS media queries, I just used Tailwind's grid system (`sm:`, `md:`, etc.). Now the workshop list drops from a 3-column grid on desktop down to a single scrollable column on cell phones.
+I built the entire layout mobile-first using **Tailwind CSS**. Handling CSS at the utility level meant I could completely rearrange grids just by changing a class prefix. For instance, the dashboard stats go from a clean 3-column row on standard computer monitors instantly down to stacked, scrollable rows on a phone display.
 
-I also fixed the navigation. On a phone, the top links collapse into a standard hamburger menu so it's actually tappable. I also made sure to use `rem` units everywhere instead of fixed pixels, which means if someone has their phone's font size turned way up for accessibility, the UI scales with it naturally.
+The biggest fix for mobile was the navigation. On a phone screen, the desktop sidebar and top navigation links completely hide themselves and roll up into a neat hamburger menu. It keeps the screen from looking horizontally squished and confusing on a small 6-inch device.
 
 ### 3. What trade-offs did you make between the design and performance?
-The biggest trade-off was deciding to use the frosted glass (`backdrop-blur`) effect. It looks amazing over the dark gradient background, but those CSS filters can sometimes be a little heavy on older phone GPUs. To offset that performance hit, I decided to build the background using plain CSS rules (`radial-gradient`) instead of injecting heavy high-res image files.
+A major trade-off I had to navigate was choosing to completely decouple the frontend into a React Single Page Application (SPA) instead of just dropping some CSS into the old Django templates. 
 
-Another thing was choosing React Router. I wanted the site to feel instantly responsive when clicking around. The downside is that you have a slightly larger initial JavaScript load time. To fix that, I added `React.lazy()` so the browser only loads the exact code chunks it needs for the page you're looking at.
+While sticking with basic Django HTML would have been much faster to code, React makes the site feel incredibly snappy because the pages don't hard-refresh when you click around. The downside is the initial JavaScript bundle size is a bit larger. To offset that performance hit, I heavily used `React.lazy()` for all the routing. The browser only downloads the exact code chunk it needs for the page you are actively viewing, keeping the initial load time extremely fast.
 
 ### 4. What was the most challenging part of the task and how did you approach it?
-To be honest, the hardest part was just trying to modernize an educational site without ruining the official branding. A lot of academic portals look really cluttered, but I couldn't just throw crazy neon designs at an official government-backed project. 
+Honestly, the hardest part was getting the fake "mock" authentication logic to feel completely real for you guys. I didn't want to just build a static dummy page; I wanted the evaluator to actually experience the flow! 
 
-I approached it by trying to mix a clean "startup" aesthetic with the official FOSSEE color guidelines. I used a giant CSS radial spotlight in the background and floated the stats in transparent cards on top to give it some depth. Rewriting the entire old layout with Tailwind was also a huge pain at first, because I had to carefully rebuild things like the `<Button>` and `<StatusBadge>` components from scratch so they wouldn't break the layout when the real backend gets plugged back in.
+I ended up writing a custom local-storage handler so that when you register, the app dynamically routes you. If you choose the "Student" role or log in with a student email, the Dashboard cleanly swaps its UI to show "My Enrollments" and "Certificates". If you log in as staff, it shows the "Coordinator" view. Getting those state changes to reflect instantly globally (like the "Log out" button appearing) without the backend attached was tough but really rewarding.
 
-### 5. How did you handle SEO using React?
-Since React is a Single Page Application (SPA), the standard HTML file doesn't update its title or meta descriptions when you click around. To fix the SEO requirement, I wrote my own custom React hook called `useSEO`. 
+### 5. How did I handle SEO using React?
+The biggest classic flaw with a React app is that the base `index.html` file essentially never changes, which can seriously hurt your SEO indexing if bots crawl the site. 
 
-Basically, whenever you navigate to a new route, the hook triggers a `useEffect` that dynamically rewrites the `document.title` and injects exact `<meta name="description">` tags into the DOM's head. That way, if Google's bots scrape the site, they index every single page properly with the correct preview text!
+To fix this, I intentionally integrated a library called `react-helmet-async`. I wrapped the entire application in a provider, and then on every single individual page (like the Home screen, the Workshop Details, and the Dashboard), I injected a `<Helmet>` component. This dynamically rewrites the `document.title` and the meta description tags in the actual HTML head the exact millisecond the route loads. Because of this, if the site goes live, search engines will easily read the exact context of whichever page the user landed on!
